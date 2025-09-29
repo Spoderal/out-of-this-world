@@ -1,0 +1,1386 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Saturn's Construct - Cosmic Journey</title>
+<style>
+  * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+  }
+  
+  body { 
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    overflow: hidden;
+    background: radial-gradient(circle at 30% 70%, #001133 0%, #000511 50%, #000000 100%);
+    color: white;
+  }
+  
+  canvas { 
+    display: block; 
+    transition: filter 0.5s ease;
+    opacity: 0;
+  }
+  
+  .canvas-visible {
+    opacity: 1 !important;
+  }
+  
+  .nebula-explosion {
+    filter: brightness(1.5) saturate(1.8) blur(1px);
+  }
+  
+  .stellar-harmony {
+    filter: brightness(1.1) contrast(1.2);
+  }
+
+  /* Landing Screen */
+  #landingScreen {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    background: radial-gradient(circle at 30% 70%, #001133 0%, #000511 50%, #000000 100%);
+    z-index: 1000;
+    transition: all 1.5s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  
+  .landing-hidden {
+    opacity: 0;
+    transform: scale(1.1);
+    pointer-events: none;
+  }
+  
+  #welcomeText {
+    font-size: clamp(1.2rem, 3vw, 2rem);
+    text-align: center;
+    max-width: 800px;
+    margin-bottom: 3rem;
+    line-height: 1.6;
+    color: rgba(255, 255, 255, 0.9);
+    text-shadow: 0 0 20px rgba(100, 150, 255, 0.3);
+    padding: 0 2rem;
+  }
+  
+  #startButton {
+    padding: 1rem 3rem;
+    font-size: 1.2rem;
+    cursor: pointer;
+    background: linear-gradient(135deg, rgba(100, 150, 255, 0.2), rgba(150, 100, 255, 0.2));
+    color: white;
+    border: 2px solid rgba(100, 150, 255, 0.5);
+    border-radius: 50px;
+    backdrop-filter: blur(20px);
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    font-weight: 600;
+    position: relative;
+    overflow: hidden;
+  }
+  
+  #startButton::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 0;
+    height: 0;
+    background: radial-gradient(circle, rgba(100, 150, 255, 0.3), transparent);
+    transition: all 0.4s ease;
+    transform: translate(-50%, -50%);
+    border-radius: 50%;
+  }
+  
+  #startButton:hover {
+    transform: translateY(-2px);
+    background: linear-gradient(135deg, rgba(100, 150, 255, 0.3), rgba(150, 100, 255, 0.3));
+    border-color: rgba(100, 150, 255, 0.8);
+    box-shadow: 0 10px 40px rgba(100, 150, 255, 0.2);
+  }
+  
+  #startButton:hover::before {
+    width: 300px;
+    height: 300px;
+  }
+  
+  #startButton:active {
+    transform: translateY(0px);
+  }
+
+  /* Controls */
+  #controls {
+    position: absolute;
+    top: 20px;
+    left: 20px;
+    z-index: 10;
+    opacity: 0;
+    transition: opacity 1s ease;
+  }
+  
+  .controls-visible {
+    opacity: 1 !important;
+  }
+  
+  #playButton {
+    padding: 12px 24px;
+    font-size: 16px;
+    cursor: pointer;
+    background: rgba(100, 150, 255, 0.2);
+    color: white;
+    border: 2px solid rgba(100, 150, 255, 0.5);
+    border-radius: 8px;
+    backdrop-filter: blur(10px);
+    transition: all 0.3s ease;
+  }
+  
+  #playButton:hover {
+    background: rgba(100, 150, 255, 0.3);
+    border-color: rgba(100, 150, 255, 0.8);
+  }
+
+  #timeline {
+    position: absolute;
+    bottom: 60px;
+    left: 20px;
+    right: 20px;
+    height: 4px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 2px;
+    opacity: 0;
+    transition: opacity 1s ease;
+  }
+  
+  .timeline-visible {
+    opacity: 1 !important;
+  }
+  
+  #progress {
+    height: 100%;
+    background: linear-gradient(90deg, #4080ff, #80c0ff, #ff8040, #ff4080);
+    border-radius: 2px;
+    width: 0%;
+    transition: width 0.1s ease;
+  }
+  
+  #storyText {
+    position: absolute;
+    bottom: 20px;
+    left: 20px;
+    right: 20px;
+    text-align: center;
+    color: rgba(255, 255, 255, 0.9);
+    font-size: 1.2rem;
+    font-weight: 500;
+    text-shadow: 0 0 15px rgba(255, 255, 255, 0.4);
+    opacity: 0;
+    transition: all 1.5s cubic-bezier(0.4, 0, 0.2, 1);
+    transform: translateY(20px);
+  }
+
+  #lyricText {
+   position: absolute;
+   bottom: 80px;
+   left: 20px;
+   right: 20px;
+   text-align: center;
+   color: rgba(255, 255, 255, 0.9);
+   font-size: 1.2rem;
+   font-weight: 500;
+   text-shadow: 0 0 15px rgba(255, 255, 255, 0.4);
+   opacity: 0;
+   transition: all 1.5s cubic-bezier(0.4, 0, 0.2, 1);
+   transform: translateY(20px);
+  }
+  
+  .story-visible {
+    opacity: 1 !important;
+    transform: translateY(0) !important;
+  }
+  
+  #info {
+    position: absolute;
+    top: 100px;
+    left: 20px;
+    color: rgba(255, 255, 255, 0.6);
+    font-size: 12px;
+    max-width: 300px;
+    opacity: 0;
+    transition: opacity 1s ease;
+  }
+  
+  .info-visible {
+    opacity: 1 !important;
+  }
+
+  /* Loading indicator */
+  .loading {
+    display: inline-block;
+    width: 20px;
+    height: 20px;
+    border: 3px solid rgba(100, 150, 255, 0.3);
+    border-radius: 50%;
+    border-top-color: rgba(100, 150, 255, 0.8);
+    animation: spin 1s ease-in-out infinite;
+    margin-left: 10px;
+  }
+  
+  @keyframes spin {
+    to { transform: rotate(360deg); }
+  }
+
+  @media (max-width: 768px) {
+    #welcomeText {
+      font-size: 1.1rem;
+      margin-bottom: 2rem;
+    }
+    
+    #startButton {
+      padding: 0.8rem 2rem;
+      font-size: 1rem;
+    }
+  }
+</style>
+</head>
+<body>
+<!-- Landing Screen -->
+<div id="landingScreen">
+  <div id="welcomeText">
+    Hi, I'm Saturn's Construct and I'm pushing the boundaries with storytelling by mixing in my programming abilities and my music. Enjoy the experience :)<br>(Bro living up to his name, saturn is constructing experiences)
+  </div>
+  <button id="startButton">Begin Journey</button>
+</div>
+
+<!-- Main Experience -->
+<div id="controls">
+  <button id="playButton">Loading Experience...</button>
+</div>
+<div id="timeline">
+  <div id="progress"></div>
+</div>
+<div id="storyText">Welcome to a universe where music shapes reality...</div>
+<div id="lyricText"></div>
+
+<canvas id="canvas"></canvas>
+<div id="info">
+  This cosmic journey is synchronized to a timeline. Each note, every drum, every guitar rift, are all connected to the worlds you see. Welcome to Out Of This World
+</div>
+
+<script>
+const AUDIO_FILE_PATH = './from_out_of_this_world.mp3'; 
+
+const GUITAR_STRUM_TIMESTAMPS = [
+  9, 10, 13.2, 15, 17.5, 18.5, 19.3, 22, 23.5, 27, 27.8, 31, 32.5, 37.6, 39.9, 40.2, 41.8, 42, 44, 46, 48.6, 53, 54.5, 57, 57.5, 57.6, 57.8, 58, 61, 62, 63.1, 64.2, 66, 66.5, 66.7, 68, 69, 70.5, 75.7, 79.9, 83, 84.8, 91, 92.9, 93.3, 93.9, 94.2, 101.4, 101.6, 101.9, 105.4
+];
+
+// Planet background configuration
+const PLANET_BACKGROUNDS = [
+  {
+    src: './planets/planet_1.png', 
+    startTime: 90,  // When to start fading in (seconds)
+    endTime: 91,    // When to start fading out (seconds)
+    fadeInDuration: 1,  // Fade in duration (seconds)
+    fadeOutDuration: 1, // Fade out duration (seconds)
+    scale: 0.1,     // Scale of the planet (1 = fit to screen)
+    position: { x: 0.85, y: 0.30 }, // Position (0-1, where 0.5 is center) - top right
+    name: 'Planet 1'
+  },
+  {
+    src: './planets/planet_2.png',
+    startTime: 95,
+    endTime: 96,
+    fadeInDuration: 1,
+    fadeOutDuration: 1,
+    scale: 0.08,
+    position: { x: 0.20, y: 0.30 },
+    name: 'Planet 2'
+  },
+  {
+    src: './planets/planet_3.png',
+    startTime: 100,
+    endTime: 101,
+    fadeInDuration: 1,
+    fadeOutDuration: 1,
+    scale: 0.05,
+    position: { x: 0.75, y: 0.5 },
+    name: 'Planet 3'
+  },
+  {
+    src: './planets/planet_4.png',
+    startTime: 105,
+    endTime: 106,
+    fadeInDuration: 1,
+    fadeOutDuration: 1,
+    scale: 0.12,
+    position: { x: 0.30, y: 0.6 },
+    name: 'Planet 4'
+  },
+  {
+    src: './planets/planet_5.png',
+    startTime: 107,
+    endTime: 108,
+    fadeInDuration: 1,
+    fadeOutDuration: 1,
+    scale: 0.15,
+    position: { x: 0.25, y: 0.75 },
+    name: 'Planet 5'
+  }
+];
+
+let planetImages = [];
+let planetsLoaded = false;
+
+const canvas = document.getElementById('canvas');
+const ctx = canvas.getContext('2d');
+canvas.width = window.innerWidth;
+canvas.height = window.innerHeight;
+
+let audioCtx, source, analyser, dataArray, bufferLength;
+let audio, isPlaying = false;
+let startTime = 0;
+let audioLoaded = false;
+
+const LYRIC_PHASES = {
+  VERSE1: { start: 56, end: 70 },
+  VERSE2: { start: 70, end: 90 }
+}
+
+const LYRIC_TEXTS =
+{
+  VERSE1: "From out of this world, I've been losing my mind for a while now think it's time for me to wind down...",
+  VERSE2: "I take a hit and i take a prick and i spin in my head til im singing out of this world"
+}
+
+// Story phases with exact timings (in seconds)
+const STORY_PHASES = {
+  BLUE_WORLD: { start: 0, end: 38 },
+  GOLDEN_RINGS: { start: 38, end: 88 },
+  PLANETARY_SYSTEM: { start: 88, end: 120 },
+  STELLAR_HARMONY: { start: 120, end: 130 }
+};
+
+const STORY_TEXTS = {
+  BLUE_WORLD: "Welcome to a universe where music shapes reality...",
+  GOLDEN_RINGS: "OUT OF THIS WORLD",
+  PLANETARY_SYSTEM: "Sister worlds join the dance - a cosmic family in perfect harmony...",
+  STELLAR_HARMONY: "The cosmos sing - you feel a dozen suns, millions of planets, and the heartbeat of the universe..."
+};
+
+// Visual elements
+let currentPhase = 'BLUE_WORLD';
+let currentLyricPhase = null;
+let phaseProgress = 0;
+let stars = [];
+let orbitingPlanets = [];
+let nebulaParticles = [];
+let ringParticles = [];
+let stellarNodes = [];
+let explosionParticles = [];
+let time = 0;
+
+// Enhanced transition system
+let transitionProgress = 0;
+let isTransitioning = false;
+let transitionStartTime = 0;
+let scaleTransition = 1;
+let colorTransition = { r: 100, g: 150, b: 255 }; // Start blue
+
+// Central world properties with enhanced transitions
+let centralWorld = {
+  x: 0,
+  y: 0,
+  baseRadius: 25, // Increased base size
+  targetRadius: 25,
+  color: { r: 100, g: 150, b: 255 },
+  targetColor: { r: 100, g: 150, b: 255 },
+  rings: []
+};
+
+// Zoom transition variables
+let zoomLevel = 1;
+let targetZoomLevel = 1;
+let isZooming = false;
+let zoomStartTime = 0;
+let cameraX = 0;
+let cameraY = 0;
+
+// Beat detection for pulsing rings
+let beatHistory = [];
+let lastBeatTime = 0;
+let ringPulse = 1;
+
+// Guitar strum detection and star effects
+let guitarStrumStars = [];
+let lastStrumTime = 0;
+let strumHistory = [];
+let guitarFreqRange = { low: 80, high: 250 }; // Guitar frequency range
+let processedTimestamps = new Set();
+let timestampTolerance = 0.1; // Tolerance for timestamp matching (100ms)
+
+
+// DOM elements
+const landingScreen = document.getElementById('landingScreen');
+const startButton = document.getElementById('startButton');
+const playButton = document.getElementById('playButton');
+const progressBar = document.getElementById('progress');
+const storyText = document.getElementById('storyText');
+const lyricText = document.getElementById('lyricText');
+const controls = document.getElementById('controls');
+const timeline = document.getElementById('timeline');
+const info = document.getElementById('info');
+
+// Initialize audio on page load
+window.addEventListener('load', initializeAudio);
+
+async function initializeAudio() {
+  try {
+    audio = new Audio(AUDIO_FILE_PATH);
+    audio.crossOrigin = "anonymous";
+    
+    // Wait for audio to be loadable
+    await new Promise((resolve, reject) => {
+      audio.addEventListener('canplaythrough', resolve);
+      audio.addEventListener('error', reject);
+      audio.load();
+    });
+    
+    audioLoaded = true;
+    playButton.textContent = "Begin Cosmic Journey";
+    
+    // Initialize Web Audio API
+    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    source = audioCtx.createMediaElementSource(audio);
+    analyser = audioCtx.createAnalyser();
+    source.connect(analyser);
+    analyser.connect(audioCtx.destination);
+    analyser.fftSize = 1024;
+    bufferLength = analyser.frequencyBinCount;
+    dataArray = new Uint8Array(bufferLength);
+    
+    initializeVisuals();
+    loadPlanetImages();
+    
+  } catch (error) {
+    console.error('Failed to load audio:', error);
+    playButton.textContent = "Audio failed to load";
+    playButton.disabled = true;
+  }
+}
+
+// Load planet images
+function loadPlanetImages() {
+  let loadedCount = 0;
+  
+  PLANET_BACKGROUNDS.forEach((planet, index) => {
+    const img = new Image();
+    img.onload = () => {
+      loadedCount++;
+      if (loadedCount === PLANET_BACKGROUNDS.length) {
+        planetsLoaded = true;
+        console.log('All planet images loaded');
+      }
+    };
+    img.onerror = () => {
+      console.error(`Failed to load planet image: ${planet.src}`);
+      loadedCount++;
+      if (loadedCount === PLANET_BACKGROUNDS.length) {
+        planetsLoaded = true;
+      }
+    };
+    img.src = planet.src;
+    planetImages.push({ img, config: planet, opacity: 0 });
+  });
+}
+
+// Calculate planet opacity based on current time
+function getPlanetOpacity(planet, currentTime) {
+  const { startTime, endTime, fadeInDuration, fadeOutDuration } = planet.config;
+  
+  // Before start time
+  if (currentTime < startTime) {
+    return 0;
+  }
+  
+  // Fading in
+  if (currentTime >= startTime && currentTime < startTime + fadeInDuration) {
+    const progress = (currentTime - startTime) / fadeInDuration;
+    return progress; // 0 to 1
+  }
+  
+  // Fully visible
+  if (currentTime >= startTime + fadeInDuration && currentTime < endTime) {
+    return 1;
+  }
+  
+  // Fading out
+  if (currentTime >= endTime && currentTime < endTime + fadeOutDuration) {
+    const progress = (currentTime - endTime) / fadeOutDuration;
+    return 1 - progress; // 1 to 0
+  }
+  
+  // After fade out
+  return 0;
+}
+
+// Draw planet backgrounds
+function drawPlanetBackgrounds() {
+  if (!planetsLoaded) return;
+  
+  const currentTime = getCurrentTime();
+  
+  planetImages.forEach(planet => {
+    planet.opacity = getPlanetOpacity(planet, currentTime);
+    
+    if (planet.opacity <= 0 || !planet.img.complete) return;
+    
+    const { scale, position } = planet.config;
+    
+    // Calculate dimensions to fit canvas while maintaining aspect ratio
+    const imgRatio = planet.img.width / planet.img.height;
+    const canvasRatio = canvas.width / canvas.height;
+    
+    let drawWidth, drawHeight;
+    if (imgRatio > canvasRatio) {
+      drawHeight = canvas.height * scale;
+      drawWidth = drawHeight * imgRatio;
+    } else {
+      drawWidth = canvas.width * scale;
+      drawHeight = drawWidth / imgRatio;
+    }
+    
+    // Position the image
+    const x = (canvas.width * position.x) - (drawWidth / 2);
+    const y = (canvas.height * position.y) - (drawHeight / 2);
+    
+    // Draw with current opacity
+    ctx.save();
+    ctx.globalAlpha = planet.opacity * 0.4; // Keep it subtle in background
+    ctx.drawImage(planet.img, x, y, drawWidth, drawHeight);
+    ctx.restore();
+  });
+}
+
+// Landing screen interaction
+startButton.onclick = () => {
+  if (!audioLoaded) {
+    startButton.innerHTML = 'Loading... <div class="loading"></div>';
+    return;
+  }
+  
+  // Hide landing screen
+  landingScreen.classList.add('landing-hidden');
+  
+  // Show main interface after transition
+  setTimeout(() => {
+    canvas.classList.add('canvas-visible');
+    controls.classList.add('controls-visible');
+    timeline.classList.add('timeline-visible');
+    info.classList.add('info-visible');
+    info.style.fontSize = '20px';
+    landingScreen.style.display = 'none';
+  }, 800);
+
+  setTimeout(() => {
+    info.classList.remove('info-visible');
+  }, 10000);
+};
+
+playButton.onclick = async () => {
+  if (!audioLoaded) return;
+  
+  if (!isPlaying) {
+    // Resume audio context if suspended
+    if (audioCtx.state === 'suspended') {
+      await audioCtx.resume();
+    }
+    
+    audio.play();
+    startTime = Date.now();
+    isPlaying = true;
+    playButton.textContent = "Pause Journey";
+    storyText.classList.add('story-visible');
+    animate();
+  } else {
+    audio.pause();
+    isPlaying = false;
+    playButton.textContent = "Continue Journey";
+  }
+};
+
+function initializeVisuals() {
+  centralWorld.x = canvas.width / 2;
+  centralWorld.y = canvas.height / 2;
+  
+  orbitingPlanets = [
+    {
+      angle: 0,
+      distance: 250,
+      speed: 0.015,
+      baseRadius: 10, // Increased size
+      color: { r: 255, g: 150, b: 200 },
+      name: "pink"
+    },
+    {
+      angle: Math.PI,
+      distance: 200,
+      speed: 0.005,
+      baseRadius: 1, // Increased size
+      color: { r: 255, g: 100, b: 100 },
+      name: "red"
+    },
+    
+    {
+      angle: Math.PI,
+      distance: 300,
+      speed: 0.005,
+      baseRadius: 5, // Increased size
+      color: { r: 100, g: 150, b: 255 },
+      name: "blue"
+    }
+  ];
+  
+  // Create stars
+  stars = [];
+  for (let i = 0; i < 200; i++) {
+    stars.push({
+      x: Math.random() * canvas.width,
+      y: Math.random() * canvas.height,
+      size: Math.random() * 2 + 0.5,
+      brightness: Math.random() * 0.8 + 0.2,
+      frequency: Math.random() * 50 + 10,
+      baseSize: Math.random() * 2 + 0.5,
+      pulseSpeed: Math.random() * 0.05 + 0.02
+    });
+  }
+
+  // Create enhanced ring particles
+  ringParticles = [];
+  for (let ringLevel = 0; ringLevel < 4; ringLevel++) { 
+    for (let i = 0; i < 100; i++) { 
+      const baseDistance = 90 + (ringLevel * 50);
+      ringParticles.push({
+        angle: Math.random() * Math.PI * 2,
+        distance: baseDistance + (Math.random() - 0.5) * 25,
+        speed: 0.00010 + Math.random() * 0.005,
+        size: Math.random() * 2.5 + 1,
+        alpha: Math.random() * 0.7 + 0.3,
+        ringLevel: ringLevel
+      });
+    }
+  }
+
+  // Create stellar harmony nodes
+  stellarNodes = [];
+  for (let i = 0; i < 15; i++) {
+    stellarNodes.push({
+      x: (canvas.width / 16) * (i + 1),
+      y: canvas.height / 2 + Math.sin(i * 0.8) * 120,
+      frequency: i * 15 + 20,
+      baseSize: 5,
+      connections: []
+    });
+  }
+}
+
+function getCurrentTime() {
+  return audio ? audio.currentTime : 0;
+}
+
+function detectBeat(bass) {
+  beatHistory.push(bass);
+  if (beatHistory.length > 10) beatHistory.shift();
+  
+  const avgBass = beatHistory.reduce((a, b) => a + b, 0) / beatHistory.length;
+  const isBeat = bass > avgBass * 1.4 && bass > 120 && Date.now() - lastBeatTime > 100;
+  
+  if (isBeat) {
+    lastBeatTime = Date.now();
+    ringPulse = 1.8; // Enhanced pulse effect
+  }
+  
+  ringPulse = Math.max(1, ringPulse * 0.94);
+}
+
+function detectGuitarStrum() {
+  // Calculate guitar frequency range intensity
+  const guitarStart = Math.floor(guitarFreqRange.low * bufferLength / (audioCtx.sampleRate / 2));
+  const guitarEnd = Math.floor(guitarFreqRange.high * bufferLength / (audioCtx.sampleRate / 2));
+  const guitarIntensity = dataArray.slice(guitarStart, guitarEnd).reduce((a, b) => a + b, 0) / (guitarEnd - guitarStart);
+  
+  // Track strum history for better detection
+  strumHistory.push(guitarIntensity);
+  if (strumHistory.length > 8) strumHistory.shift();
+  
+  const avgGuitarIntensity = strumHistory.reduce((a, b) => a + b, 0) / strumHistory.length;
+  const currentTime = Date.now();
+  
+  // Detect sudden spike in guitar frequencies (strum)
+  const isStrum = guitarIntensity > avgGuitarIntensity * 1.6 && 
+                  guitarIntensity > 100 && 
+                  currentTime - lastStrumTime > 80;
+  
+  if (isStrum) {
+    lastStrumTime = currentTime;
+    createGuitarStrumStars(guitarIntensity);
+  }
+}
+
+
+function checkTimestampStrums() {
+  const currentTime = getCurrentTime();
+  
+  // Check for guitar strums at specific timestamps
+  GUITAR_STRUM_TIMESTAMPS.forEach(timestamp => {
+    const timeDiff = Math.abs(currentTime - timestamp);
+    
+    if (timeDiff <= timestampTolerance && !processedTimestamps.has(timestamp)) {
+      processedTimestamps.add(timestamp);
+      
+      // Get current audio intensity for scaling
+      const totalIntensity = dataArray.reduce((a, b) => a + b, 0) / dataArray.length;
+      const scaledIntensity = Math.max(120, totalIntensity * 1.5); // Ensure minimum intensity
+      
+      createGuitarStrumStars(scaledIntensity);
+      console.log(`Guitar strum triggered at ${timestamp}s`); // Debug log
+    }
+  });
+}
+
+
+function createGuitarStrumStars(intensity) {
+  const numStars = Math.floor(intensity / 25) + 3; // 3-12 stars depending on intensity
+  
+  for (let i = 0; i < numStars; i++) {
+    guitarStrumStars.push({
+      x: Math.random() * canvas.width,
+      y: Math.random() * canvas.height,
+      size: (Math.random() * 4 + 2) * (intensity / 150), // Size based on strum intensity
+      brightness: Math.random() * 0.8 + 0.5,
+      life: 1.0, // Full life initially
+      decay: 0.02 + Math.random() * 0.03, // How fast it fades
+      color: {
+        r: 255,
+        g: Math.floor(200 + Math.random() * 55),
+        b: Math.floor(150 + Math.random() * 105)
+      },
+      flash: true, // Initial flash effect
+      flashTime: 5 // Frames of initial bright flash
+    });
+  }
+}
+
+
+function updateGuitarStrumStars() {
+  for (let i = guitarStrumStars.length - 1; i >= 0; i--) {
+    const star = guitarStrumStars[i];
+    
+    // Handle initial flash
+    if (star.flash && star.flashTime > 0) {
+      star.flashTime--;
+      if (star.flashTime <= 0) {
+        star.flash = false;
+      }
+    }
+    
+    // Decay the star
+    star.life -= star.decay;
+    
+    // Remove dead stars
+    if (star.life <= 0) {
+      guitarStrumStars.splice(i, 1);
+      continue;
+    }
+    
+    // Draw the star
+    ctx.save();
+    const currentBrightness = star.flash ? 1.0 : star.brightness * star.life;
+    const currentSize = star.flash ? star.size * 2 : star.size * star.life;
+    
+    ctx.beginPath();
+    ctx.arc(star.x, star.y, currentSize, 0, Math.PI * 2);
+    ctx.fillStyle = `rgba(${star.color.r}, ${star.color.g}, ${star.color.b}, ${currentBrightness})`;
+    
+    // Add glow effect during flash or high intensity
+    if (star.flash || star.life > 0.7) {
+      ctx.shadowColor = ctx.fillStyle;
+      ctx.shadowBlur = currentSize * (star.flash ? 6 : 3);
+    }
+    
+    ctx.fill();
+    ctx.shadowBlur = 0;
+    ctx.restore();
+  }
+}
+
+
+function updatePhaseTransitions() {
+  const currentTime = getCurrentTime();
+  
+  // Smooth transitions between phases
+  if (currentTime >= STORY_PHASES.BLUE_WORLD.end - 3 && currentTime < STORY_PHASES.BLUE_WORLD.end && !isTransitioning) {
+    // Start transition to golden rings
+    isTransitioning = true;
+    transitionStartTime = currentTime;
+    centralWorld.targetColor = { r: 255, g: 200, b: 80 };
+    centralWorld.targetRadius = 45; // Grow during transition
+  }
+  
+  if (currentTime >= STORY_PHASES.GOLDEN_RINGS.end - 3 && currentTime < STORY_PHASES.GOLDEN_RINGS.end && currentPhase === 'GOLDEN_RINGS') {
+    // Start zoom transition for planetary system
+    isZooming = true;
+    zoomStartTime = currentTime;
+    targetZoomLevel = 1.5; // Gentle zoom instead of extreme
+  }
+  
+  // Update smooth transitions
+  if (isTransitioning) {
+    const transitionDuration = 3;
+    transitionProgress = Math.min(1, (currentTime - transitionStartTime) / transitionDuration);
+    
+    // Smooth color transition
+    centralWorld.color.r = lerp(centralWorld.color.r, centralWorld.targetColor.r, transitionProgress * 0.1);
+    centralWorld.color.g = lerp(centralWorld.color.g, centralWorld.targetColor.g, transitionProgress * 0.1);
+    centralWorld.color.b = lerp(centralWorld.color.b, centralWorld.targetColor.b, transitionProgress * 0.1);
+    
+    // Smooth size transition
+    centralWorld.baseRadius = lerp(centralWorld.baseRadius, centralWorld.targetRadius, transitionProgress * 0.1);
+    
+    if (transitionProgress >= 0.9) {
+      isTransitioning = false;
+    }
+  }
+  
+  // Smooth zoom transition
+  if (isZooming) {
+    const zoomDuration = 4;
+    const zoomProgress = Math.min(1, (currentTime - zoomStartTime) / zoomDuration);
+    zoomLevel = lerp(zoomLevel, targetZoomLevel, zoomProgress * 0.08);
+    cameraX = centralWorld.x;
+    cameraY = centralWorld.y;
+    
+    if (zoomProgress >= 0.95) {
+      isZooming = false;
+    }
+  }
+}
+
+function lerp(start, end, progress) {
+  return start + (end - start) * progress;
+}
+
+function updateStoryPhase() {
+  const currentTime = getCurrentTime();
+  let newPhase = currentPhase;
+  
+  updatePhaseTransitions();
+  
+  // Determine current phase
+  for (const [phase, timing] of Object.entries(STORY_PHASES)) {
+    if (currentTime >= timing.start && currentTime < timing.end) {
+      newPhase = phase;
+      phaseProgress = (currentTime - timing.start) / (timing.end - timing.start);
+      break;
+    }
+  }
+  
+  // Handle phase changes
+  if (newPhase !== currentPhase) {
+    currentPhase = newPhase;
+    storyText.textContent = STORY_TEXTS[currentPhase];
+    
+    // Phase-specific effects
+    if (currentPhase === 'STELLAR_HARMONY') {
+      canvas.classList.add('stellar-harmony');
+      // Reset zoom for stellar view
+      targetZoomLevel = 0.6;
+      isZooming = true;
+      zoomStartTime = currentTime;
+    }
+  }
+  
+  // Update progress bar
+  const totalDuration = audio.duration || 300;
+  // progressBar.style.width = `${(currentTime / totalDuration) * 100}%`;
+}
+
+function updateLyricPhase() {
+  const currentTime = getCurrentTime();
+  console.log("Current time:", currentTime, "Current lyric phase:", currentLyricPhase);
+
+  let newLyricPhase = null;
+  
+  // Determine current lyric phase
+  for (const [phase, timing] of Object.entries(LYRIC_PHASES)) {
+    if (currentTime >= timing.start && currentTime < timing.end) {
+      newLyricPhase = phase;
+      break;
+    }
+  }
+
+  // Handle phase changes
+  if (newLyricPhase !== currentLyricPhase) {
+    currentLyricPhase = newLyricPhase;
+    
+    if (currentLyricPhase) {
+      // Only set text if there's an active lyric phase
+      lyricText.textContent = LYRIC_TEXTS[currentLyricPhase];
+      lyricText.classList.add('story-visible');
+      console.log("Lyric phase changed to:", currentLyricPhase);
+    } else {
+      // Clear text when no lyric phase is active
+      lyricText.textContent = '';
+      lyricText.classList.remove('story-visible');
+      console.log("No lyric phase active - hiding lyrics");
+    }
+  }
+}
+
+
+function drawCentralWorld(bass, mid, high, energy) {
+  const pulseRadius = centralWorld.baseRadius + (bass * 0.4) + (energy * 0.3);
+
+  ctx.save();
+  if (zoomLevel !== 1) {
+    ctx.translate(cameraX, cameraY);
+    ctx.scale(zoomLevel, zoomLevel);
+    ctx.translate(-cameraX, -cameraY);
+  }
+
+  detectBeat(bass);
+
+  const beatGlow = (ringPulse - 1) * 100;
+  const finalRadius = pulseRadius * (1 + (ringPulse - 1) * 0.4);
+
+  // Add rotation for spinning effect (clockwise)
+  const rotationSpeed = 0.004; // radians per frame
+  const rotationAngle = time * rotationSpeed;
+  ctx.translate(centralWorld.x, centralWorld.y);
+  ctx.rotate(rotationAngle);
+  ctx.translate(-centralWorld.x, -centralWorld.y);
+
+  // Enhanced gradient with smooth color transitions
+  const gradient = ctx.createRadialGradient(
+    centralWorld.x, centralWorld.y, 0,
+    centralWorld.x, centralWorld.y, finalRadius * 1.5
+  );
+
+  const glowR = Math.min(255, centralWorld.color.r + beatGlow);
+  const glowG = Math.min(255, centralWorld.color.g + beatGlow);
+  const glowB = Math.min(255, centralWorld.color.b + beatGlow);
+
+  gradient.addColorStop(0, `rgba(${glowR}, ${glowG}, ${glowB}, 0.95)`);
+  gradient.addColorStop(0.4, `rgba(${centralWorld.color.r}, ${centralWorld.color.g}, ${centralWorld.color.b}, 0.8)`);
+  gradient.addColorStop(0.8, `rgba(${centralWorld.color.r * 0.7}, ${centralWorld.color.g * 0.7}, ${centralWorld.color.b * 0.7}, 0.4)`);
+  gradient.addColorStop(1, `rgba(${centralWorld.color.r * 0.3}, ${centralWorld.color.g * 0.3}, ${centralWorld.color.b * 0.3}, 0.1)`);
+
+  ctx.beginPath();
+  ctx.arc(centralWorld.x, centralWorld.y, finalRadius, 0, Math.PI * 2);
+  ctx.fillStyle = gradient;
+  ctx.shadowColor = `rgba(${glowR}, ${glowG}, ${glowB}, 0.6)`;
+  ctx.shadowBlur = 30 + beatGlow * 0.8;
+  ctx.fill();
+  ctx.shadowBlur = 0;
+
+  // atmospheric rings
+  const fadeDuration = 40; // frames per ring fade-in
+  for (let i = 0; i < 4; i++) {
+    // Calculate fade-in progress for this ring
+    const ringFade = Math.min(1, Math.max(0, (time - i * fadeDuration) / fadeDuration));
+    if (ringFade <= 0) continue; // Not visible yet
+
+    const ringRadius = finalRadius + (i * 30) + (Math.sin(time * 0.08) * 10);
+    ctx.beginPath();
+    ctx.arc(centralWorld.x, centralWorld.y, ringRadius, 0, Math.PI * 2);
+    const ringAlpha = ((0.5 - i * 0.1) * ringPulse * 0.8) * ringFade;
+    ctx.strokeStyle = `rgba(${glowR}, ${glowG}, ${glowB}, ${ringAlpha})`;
+    ctx.lineWidth = 2 + (ringPulse - 1) * 2 - i * 0.3;
+    ctx.stroke();
+  }
+
+  ctx.restore();
+}
+
+function drawGoldenRings(bass, mid, high, energy) {
+  drawCentralWorld(bass, mid, high, energy);
+
+  ctx.save();
+  if (zoomLevel !== 1) {
+    ctx.translate(cameraX, cameraY);
+    ctx.scale(zoomLevel, zoomLevel);
+    ctx.translate(-cameraX, -cameraY);
+  }
+
+  const ringPulseEffect = ringPulse;
+  const ringFadeDuration = 80; // frames per ring fade-in (slower fade)
+  let allRingsVisible = true;
+
+  // Get current timestamp
+  const currentTime = getCurrentTime();
+
+  // Smooth rotation angle
+  if (!drawGoldenRings._rotationAngle) drawGoldenRings._rotationAngle = 0;
+  if (!drawGoldenRings._lastTime) drawGoldenRings._lastTime = currentTime;
+
+  // Calculate desired rotation speed
+  let targetRotationSpeed = 0;
+  if (currentTime >= 75 && currentTime < 87) {
+    const t = (currentTime - 75) / (87 - 75);
+    targetRotationSpeed = 0.01;
+  } else if (currentTime >= 87) {
+    targetRotationSpeed = 0.005; // much slower after 87s
+  } else {
+    targetRotationSpeed = 0; // no spin before 75s
+  }
+
+  // Smoothly transition rotation speed
+  if (!drawGoldenRings._rotationSpeed) drawGoldenRings._rotationSpeed = 0;
+  drawGoldenRings._rotationSpeed += (targetRotationSpeed - drawGoldenRings._rotationSpeed) * 0.07;
+
+  // Advance rotation angle based on elapsed time and smooth speed
+  const deltaTime = Math.max(0, currentTime - drawGoldenRings._lastTime);
+  drawGoldenRings._rotationAngle += drawGoldenRings._rotationSpeed * deltaTime * 60; // 60 frames/sec approx
+  drawGoldenRings._lastTime = currentTime;
+
+  const rotationAngle = drawGoldenRings._rotationAngle;
+
+  for (let ringIndex = 0; ringIndex < 5; ringIndex++) {
+    const ringFade = Math.min(1, Math.max(0, (time - ringIndex * ringFadeDuration) / ringFadeDuration));
+    if (ringFade <= 0) {
+      allRingsVisible = false;
+      continue;
+    }
+
+    const baseRadius = 100 + (ringIndex * 55);
+    const pulsedRadius = baseRadius * (1 + (ringPulseEffect - 1) * 0.4);
+
+    ctx.save();
+    ctx.translate(centralWorld.x, centralWorld.y);
+    ctx.rotate(rotationAngle);
+    ctx.beginPath();
+    ctx.ellipse(0, 0, pulsedRadius, pulsedRadius * 0.28, 0, 0, Math.PI * 2);
+
+    const ringAlpha = (0.6 - (ringIndex * 0.1) + ((ringPulse - 1) * 0.5)) * ringFade;
+    const ringGlow = (ringPulse - 1) * 50;
+    ctx.strokeStyle = `rgba(${255 + ringGlow}, ${220 + ringGlow}, ${120 + ringGlow}, ${ringAlpha})`;
+    ctx.lineWidth = 4 + (ringPulse - 1) * 3 - ringIndex * 0.5;
+
+    if (ringPulse > 1.1) {
+      ctx.shadowColor = ctx.strokeStyle;
+      ctx.shadowBlur = 25;
+    }
+    ctx.stroke();
+    ctx.shadowBlur = 0;
+    ctx.restore();
+  }
+
+  // Only show particles after all rings have faded in
+  if (allRingsVisible) {
+    ctx.save();
+    ctx.translate(centralWorld.x, centralWorld.y);
+    ctx.rotate(rotationAngle);
+
+    ringParticles.forEach(particle => {
+      particle.angle += particle.speed + (bass * 0.0001);
+
+      const pulsedDistance = particle.distance * 1.22 * (1 + (ringPulseEffect - 1) * 0.5);
+      const x = Math.cos(particle.angle) * pulsedDistance;
+      const y = Math.sin(particle.angle) * pulsedDistance * 0.28;
+
+      const glowIntensity = (ringPulse - 1) * 4;
+      const particleSize = particle.size * (1 + glowIntensity * 0.6);
+
+      ctx.beginPath();
+      ctx.arc(x, y, particleSize, 0, Math.PI * 2);
+
+      const goldR = 255;
+      const goldG = Math.min(255, 200 + glowIntensity * 40);
+      const goldB = Math.min(255, 50 + glowIntensity * 60);
+
+      ctx.fillStyle = `rgba(${goldR}, ${goldG}, ${goldB}, ${particle.alpha + glowIntensity * 0.3})`;
+
+      if (glowIntensity > 0.1) {
+        ctx.shadowColor = ctx.fillStyle;
+        ctx.shadowBlur = particleSize * 4;
+      }
+      ctx.fill();
+      ctx.shadowBlur = 0;
+    });
+
+    ctx.restore();
+  }
+
+  ctx.restore();
+}
+
+let shootingStar = null;
+
+function spawnShootingStar() {
+  // Start from a random top or left edge, shoot to a random point off-canvas
+  const fromEdge = Math.random() < 0.5 ? 'top' : 'left';
+  let x, y, dx, dy;
+  if (fromEdge === 'top') {
+    x = Math.random() * canvas.width * 0.8 + canvas.width * 0.1;
+    y = -40;
+    dx = (Math.random() - 0.5) * 2 + 2; // rightward
+    dy = Math.random() * 2 + 4; // downward
+  } else {
+    x = -40;
+    y = Math.random() * canvas.height * 0.7 + canvas.height * 0.1;
+    dx = Math.random() * 2 + 4; // rightward
+    dy = (Math.random() - 0.5) * 2 + 2; // downward
+  }
+  shootingStar = {
+    x, y,
+    dx, dy,
+    length: Math.random() * 120 + 80,
+    life: 1.0,
+    maxLife: 1.0,
+    opacity: 1.0,
+    active: true
+  };
+}
+
+// Call this occasionally
+function maybeSpawnShootingStar() {
+  if (!shootingStar || !shootingStar.active) {
+    if (Math.random() < 0.01) { // ~1% chance per frame
+      spawnShootingStar();
+    }
+  }
+}
+
+function drawShootingStar() {
+  if (!shootingStar || !shootingStar.active) return;
+
+  // Fade out as it moves
+  shootingStar.life -= 0.012;
+  if (shootingStar.life <= 0) {
+    shootingStar.active = false;
+    return;
+  }
+
+  shootingStar.x += shootingStar.dx;
+  shootingStar.y += shootingStar.dy;
+
+  const progress = 1 - shootingStar.life / shootingStar.maxLife;
+  const tailLength = shootingStar.length * (0.5 + 0.5 * shootingStar.life);
+  const tailX = shootingStar.x - shootingStar.dx * tailLength * 0.18;
+  const tailY = shootingStar.y - shootingStar.dy * tailLength * 0.18;
+
+  ctx.save();
+  ctx.globalAlpha = shootingStar.life * 0.9;
+  ctx.strokeStyle = 'white';
+  ctx.shadowColor = 'white';
+  ctx.shadowBlur = 18;
+  ctx.lineWidth = 2.2 + 2 * shootingStar.life;
+
+  ctx.beginPath();
+  ctx.moveTo(shootingStar.x, shootingStar.y);
+  ctx.lineTo(tailX, tailY);
+  ctx.stroke();
+
+  // Draw the head as a glowing orb
+  ctx.beginPath();
+  ctx.arc(shootingStar.x, shootingStar.y, 4 + 6 * shootingStar.life, 0, Math.PI * 2);
+  ctx.fillStyle = 'white';
+  ctx.shadowBlur = 32;
+  ctx.fill();
+
+  ctx.restore();
+}
+
+function drawPlanetarySystem(bass, mid, high, energy) {
+  drawGoldenRings(bass, mid, high, energy);
+  
+  ctx.save();
+  if (zoomLevel !== 1) {
+    ctx.translate(cameraX, cameraY);
+    ctx.scale(zoomLevel, zoomLevel);
+    ctx.translate(-cameraX, -cameraY);
+  }
+  
+  // Enhanced orbiting planets
+  orbitingPlanets.forEach((planet, index) => {
+    planet.angle += planet.speed + (bass * 0.00008);
+    const planetX = centralWorld.x + Math.cos(planet.angle) * planet.distance;
+    const planetY = centralWorld.y + Math.sin(planet.angle) * planet.distance;
+    
+    const responseFreq = dataArray[index * 30 + 20] || 0;
+    const planetRadius = planet.baseRadius + (responseFreq * 0.01) + (bass * 0.015);
+    const beatResponse = 1 + (ringPulse - 1) * 0.5;
+    const finalRadius = planetRadius * beatResponse;
+    
+    // Enhanced planet gradient
+    const planetGradient = ctx.createRadialGradient(planetX, planetY, 0, planetX, planetY, finalRadius * 1.5);
+    const glowIntensity = responseFreq * 0.015;
+    
+    const glowR = Math.min(255, planet.color.r + glowIntensity * 60);
+    const glowG = Math.min(255, planet.color.g + glowIntensity * 40);
+    const glowB = Math.min(255, planet.color.b + glowIntensity * 40);
+    
+    planetGradient.addColorStop(0, `rgba(${glowR}, ${glowG}, ${glowB}, 0.95)`);
+    planetGradient.addColorStop(0.6, `rgba(${planet.color.r}, ${planet.color.g}, ${planet.color.b}, 0.8)`);
+    planetGradient.addColorStop(1, `rgba(${planet.color.r * 0.6}, ${planet.color.g * 0.6}, ${planet.color.b * 0.6}, 0.2)`);
+    
+    ctx.beginPath();
+    ctx.arc(planetX, planetY, finalRadius, 0, Math.PI * 2);
+    ctx.fillStyle = planetGradient;
+    
+    if (responseFreq > 100) {
+      ctx.shadowColor = `rgba(${planet.color.r}, ${planet.color.g}, ${planet.color.b}, 0.8)`;
+      ctx.shadowBlur = finalRadius * 3;
+    }
+    
+    ctx.fill();
+    ctx.shadowBlur = 0;
+    
+    if (responseFreq > 80) {
+      for (let i = 0; i < 3; i++) {
+        const ringRadius = finalRadius + (i * 18) + (responseFreq * 0.08);
+        ctx.beginPath();
+        ctx.arc(planetX, planetY, ringRadius, 0, Math.PI * 2);
+        ctx.strokeStyle = `rgba(${planet.color.r}, ${planet.color.g}, ${planet.color.b}, ${0.5 - i * 0.15})`;
+        ctx.lineWidth = 3 - i * 0.5;
+        ctx.stroke();
+      }
+    }
+  });
+  
+  ctx.restore();
+}
+function drawStellarHarmony(bass, mid, high, energy) {
+  stars.forEach(star => {
+    const freqValue = dataArray[Math.floor(star.frequency)] || 0;
+    star.size = star.baseSize + (freqValue * 0.08);
+    // Lower starting brightness, scale up with freqValue
+    star.brightness = 0.18 + (freqValue * 0.012);
+
+    ctx.beginPath();
+    ctx.arc(star.x, star.y, star.size, 0, Math.PI * 2);
+    ctx.fillStyle = `rgba(255, 255, 255, ${star.brightness})`;
+
+    if (freqValue > 120) {
+      ctx.shadowColor = 'white';
+      ctx.shadowBlur = star.size * 3;
+    }
+    ctx.fill();
+    ctx.shadowBlur = 0;
+  });
+
+  // Enhanced stellar harmony nodes
+  stellarNodes.forEach((node, index) => {
+    const freqValue = dataArray[Math.floor(node.frequency)] || 0;
+    const nodeSize = node.baseSize + (freqValue * 0.3);
+    const intensity = freqValue / 255;
+
+    // Lower starting node glow
+    ctx.beginPath();
+    ctx.arc(node.x, node.y, nodeSize, 0, Math.PI * 2);
+    const nodeR = Math.floor(180 + 75 * intensity);
+    const nodeG = Math.floor(170 + 30 * intensity);
+    const nodeB = 220 + Math.floor(35 * intensity);
+    ctx.fillStyle = `rgba(${nodeR}, ${nodeG}, ${nodeB}, ${0.6 + 0.2 * intensity})`;
+    ctx.shadowColor = ctx.fillStyle;
+    ctx.shadowBlur = nodeSize * 2.2;
+    ctx.fill();
+    ctx.shadowBlur = 0;
+
+    // Connections between active nodes
+    stellarNodes.forEach((otherNode, otherIndex) => {
+      if (otherIndex <= index) return;
+
+      const otherFreqValue = dataArray[Math.floor(otherNode.frequency)] || 0;
+      if (freqValue > 100 && otherFreqValue > 100) {
+        const alpha = ((freqValue + otherFreqValue) / 510) * 0.5;
+        const connectionGlow = Math.max(freqValue, otherFreqValue) * 0.008;
+
+        ctx.beginPath();
+        ctx.moveTo(node.x, node.y);
+        ctx.lineTo(otherNode.x, otherNode.y);
+        ctx.strokeStyle = `rgba(220, 220, 255, ${alpha})`;
+        ctx.lineWidth = 1 + connectionGlow;
+
+        if (connectionGlow > 0.4) {
+          ctx.shadowColor = 'rgba(220, 220, 255, 0.4)';
+          ctx.shadowBlur = 7;
+        }
+        ctx.stroke();
+        ctx.shadowBlur = 0;
+      }
+    });
+  });
+}
+
+
+function animate() {
+  if (!isPlaying) return;
+  requestAnimationFrame(animate);
+  
+  // Enhanced background fade effect
+  ctx.fillStyle = 'rgba(0, 8, 16, 0.12)';
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  
+  // Draw planet backgrounds first (behind everything)
+  drawPlanetBackgrounds();
+  
+  if (!analyser) return;
+  analyser.getByteFrequencyData(dataArray);
+  
+  // Calculate enhanced frequency bands
+  const bass = dataArray.slice(0, 15).reduce((a, b) => a + b, 0) / 15;
+  const mid = dataArray.slice(50, 180).reduce((a, b) => a + b, 0) / 130;
+  const high = dataArray.slice(200, 450).reduce((a, b) => a + b, 0) / 250;
+  const energy = (bass + mid + high) / 3;
+  
+  updateStoryPhase();
+  updateLyricPhase();
+  
+  time++;
+
+  // Check for guitar strums and update existing strum stars
+  checkTimestampStrums();
+  detectGuitarStrum();
+  updateGuitarStrumStars();
+  maybeSpawnShootingStar();
+  drawShootingStar();
+  
+  // Draw current phase with enhanced visuals
+  switch(currentPhase) {
+    case 'BLUE_WORLD':
+      drawCentralWorld(bass, mid, high, energy);
+      break;
+    case 'GOLDEN_RINGS':
+      drawGoldenRings(bass, mid, high, energy);
+      break;
+    case 'PLANETARY_SYSTEM':
+      drawPlanetarySystem(bass, mid, high, energy);
+      break;
+    case 'STELLAR_HARMONY':
+      drawStellarHarmony(bass, mid, high, energy);
+      break;
+  }
+}
+
+// Enhanced resize handler
+window.addEventListener('resize', () => {
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+  if (audioLoaded) {
+    initializeVisuals();
+  }
+});
+
+// Initialize on load
+window.addEventListener('DOMContentLoaded', () => {
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+});
+</script>
+</body>
+</html>
